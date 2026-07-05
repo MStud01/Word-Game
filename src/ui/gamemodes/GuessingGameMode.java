@@ -11,22 +11,22 @@ import model.exceptions.DeterminedStringNotFoundException;
 
 import ui.UserIO;
 
-// TODO: Update specifications
 // In this game mode, the user can guess whether a randomly generated string of English letters is a
 // word or not. 
 // The user is presented a set of randomly generated strings where the size of the set and the length
 // of each string is based on user inputs. The user is then asked to choose a string from the set and
-// guess its word status. Depending on the correctness of the user's guess, they could be prompted to
-// change the word status of the string in the DSL (in-game library). 
+// guess its word status and are immediately informed of the correctness of their guess.. 
 // The user can also choose to pass their chances of guessing each string in the set if they find that
-// the remaining unguessed strings in the set are not words. 
-// At the end of the round, the user is presented with a summary of their performance in the round,
-// including their guesses, the actual word status of each of the generated strings in the set, and
-// whether each string was recently added to the DSL or had its word status changed in the round.
-// There is also a flavour text provided to the user based on their performance in the round. 
-// The user can also enable cheats during/after the rounds of guessing that allows them to change the
-// status of any of the generated strings in the DSL by typing a secret message found in one of the 
-// other game modes or throughout this round.
+// the remaining unguessed strings in the set are not words.
+// Right after the user is done guessing, they are presented with a short overview of their performance
+// in the form of a letter grade based on their score for the round. The user is then prompted to enter 
+// a secret message to enable cheats if they feel unsatisfied with their performance in the round,
+// allowing to rectify their errors by chnaging the status of the generated strings in the DSL. This 
+// secret message is inteded to be generated throughout the round or in one of the other game modes.
+// Finally at the end of the round, the user is presented with a summary of their performance
+// including their guesses, the actual word status of each of the generated strings in the set,
+// whether each string was recently added to the DSL or had its word status changed in the round 
+// due to cheats and a brief message describing their performance in the round enthusiastically. 
 
 public class GuessingGameMode extends GameMode {
     static final int gameModeNum = 1;
@@ -35,8 +35,8 @@ public class GuessingGameMode extends GameMode {
     
     private RSG rsg = RSG.getInstance();
     private DSL dsl = DSL.getInstance();
-    private List<DeterminedString> generatedStrings = new ArrayList<DeterminedString>();
-    private List<String> addedStrings = new ArrayList<String>(), changedStrings = new ArrayList<String>();
+    private List<DeterminedString> generatedStrings;
+    private List<String> addedStrings, changedStrings;
 
     public GuessingGameMode() {
         this.rsg = RSG.getInstance();
@@ -47,13 +47,14 @@ public class GuessingGameMode extends GameMode {
     }
 
     @Override
-    // TODO: Update specifications
-    // This function initiates the "Guessing Mode" game mode, initializes the appropriate local
-    // variables to hold generated strings and user guesses and prompts the user to make guesses
-    // on the word status of the randomly generated strings displayed to them.
-    // The function makes calls to multiple functions, some setting up local variables while
-    // others prompt the user for making changes to the contents of the DSL and finally
-    // provides an end-of-game summary to the user of their performance in the game.
+    // This method initiates the "Guessing Mode" game mode, creates a new seed to generate new 
+    // strings and prompts the user to make guesses on the word status of the newly generated strings 
+    // displayed to them, informing them of the correctness of their guesses.
+    // The user is then shown their score for the round and prompted for a secret message to be 
+    // entered to enable cheats that allows them to change the word status of any of the generated strings.
+    // The method makes calls to multiple methods, one generating new strings while
+    // another allows the user to cheat their performance in the round and finally a couple of these
+    // methods provide a detailed summary to the user of their progress and performance in the round.
     public void bootGameMode() {
         rsg.generateNewSeed();
         
@@ -191,13 +192,6 @@ public class GuessingGameMode extends GameMode {
             if (addedStrings.contains(ds.getString())) {
                 UserIO.INSTANCE.printToTerminal("This string was recently added into the in-game library in this round.\n");
             }
-            if (changedStrings.contains(ds.getString())) {
-                try {
-                    UserIO.INSTANCE.printToTerminal("The status of the string was changed from " + (dsl.getDSstatus(ds.getString()) ? "not a word to a word" : "a word to not a word") +"\n");
-                } catch (DeterminedStringNotFoundException dsnfe) {
-                    UserIO.INSTANCE.printToTerminal("\nERROR: THIS WAS NOT SUPPOSED TO HAPPEN.\n");
-                }
-            }
             UserIO.INSTANCE.printToTerminal("\n");
         }
     }
@@ -212,7 +206,7 @@ public class GuessingGameMode extends GameMode {
         UserIO.INSTANCE.printToTerminal("OK. YOU FOUND IT!\nYou got lucky... maybe.\n\n");
 
         boolean changeFlag = true;
-        String response = "";
+        String loopChoice = "noorp";
 
         do {
             if (changeFlag) {
@@ -236,11 +230,13 @@ public class GuessingGameMode extends GameMode {
                 UserIO.INSTANCE.printToTerminal("\nERROR: THIS WAS NOT SUPPOSED TO HAPPEN!!!!\n");
             } finally {
                 UserIO.INSTANCE.printToTerminal("Is that all??? If you do still wish to make any more changes, type \"continue\".\n");
-                response = UserIO.INSTANCE.scanner.nextLine();
+                UserIO.INSTANCE.printToTerminal("Or if you are done being a cheat, type \"I am happy to have been cheating and will now proudly declare my\nbrilliant score to be a result of me cheating\".\n");
+                loopChoice = UserIO.INSTANCE.scanner.nextLine();
                 UserIO.INSTANCE.printToTerminal("\n");
             }
         }
-        while ((response.toLowerCase().charAt(0) == 'n') || (response.toLowerCase().charAt(0) == 'c'));
+            // TODO: Add a functionality to allow the user to change all of the strings status at once to either a word or not a word
+        while ((loopChoice.toLowerCase().charAt(0) == 'n') || (loopChoice.toLowerCase().charAt(0) == 'c'));
     }
 
     // A secret helper method that changes the status of a determined string in the DSL depending on the user's input.
@@ -280,6 +276,8 @@ public class GuessingGameMode extends GameMode {
         for (int i = 0; i < n; i++) {
             DeterminedString ds = generatedStrings.get(i);
             try {
+                // TODO: Find a way to change the font colors so it is easier to differentiate what part is the user's guess
+                // and what part is the actual word status of the string
                 UserIO.INSTANCE.printToTerminal(String.format("%-3s String %-32s   is\t\t%s\n", Integer.toString(i + 1)+".", ds.getString(), (dsl.getDSstatus(ds.getString()) ? "a Word" : "Not a Word")));
                 UserIO.INSTANCE.printToTerminal(String.format("    You guessed that %-22s   is\t\t%s\n", ds.getString(),(ds.isWord() ? "a Word" : "Not a Word")));
                 UserIO.INSTANCE.printToTerminal("    Recently added in this round?\t\t       "+ (addedStrings.contains(ds.getString()) ? "YES": "NO") +"\n");

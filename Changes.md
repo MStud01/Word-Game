@@ -143,6 +143,30 @@ I made some other changes that better fit this addition of hiding the accessibil
 - Added TODOs to update specifications of the class the and bootGameMode() method in GuessingGameMode class
     - The specifications are a bit outdated since some of the logics and method to change the status of a generated string has been hidden behind a secret cheats method.
 
+### 6TH July 2026 02:51 PM GMT +3
+- Removed if block for checking updates in changedStrings in printSummaryRoundInProgress() method in GuessingGameMode class
+    - The local variable changedStrings can no longer be updated when this method can be called during the section of the game mode wher the user can guess the word status due to the bfuscation/obscuring of the promptForChangeStatus() method.
+- Updated specifications for the GuessingGameMode class and the bootGameMode() method inGuessingGameMode class 
+    - They now reflect the correct flow of the game mode with the introduction of the secretCheats() method and obfuscation/obscuring of the promptForChangeStatus() method as well as the updated printSummary() and printSummaryRoundInProgress() methods.
+- Added a line to print a message stating that the user can turn off cheats mode in secretCheats() in GuessingGameMode class
+    - Now, the user is explicitly shown to type something other than continue to exit the loop which enables the cheats for the user for as long as they wish in secretCheats() method.
+- Fixed bug where the program throws a IndexNotFoundException when checking the loop variable response in secretCheats() method in GuessingGameMode class
+    - This was being triggered when the user fails to input a valid string when being prompted to type one of the generated strings and the loop variable does not update from an empty string. Now, the loop variable starts off being non-empty and satisfies the loop condition so the loop will continue running unless the user decides to turn off the cheats mode.
+- Removed the early initialization of the list fields in GuessingGameMode class
+    - These fields were already being initialized when the constructor for the class was being called. So, it didn't make sense for the initializtion to occur at the declaration of these fields as well.
+- Changed name of the loop variable in secretCheats() method in GuessingGameMode class to loopChoice
+    - Made this change ahead of future changes that I plan to make to this function
+- Added a TODO to allow the user to change the status of all the generated strings at once through the secretCheats() method in GuessingGameMode class
+- Added a TODO to change the output text color to easily differentiate the user's guess from the actual word status in printSummary() in GuessingGameMode class
+- Removed the TODOs that notified me to update the specifications of the class and bootGameMode() method in GuessingGameMode class 
+
+
+### Next commit : DATE TIME
+- Changed functionality of secretCheats() method
+- Added a field called guessedStrings and a local variable called score in bootGameMode() method in GuessingGameMode class
+- Create an inner enum for letterGrades in GuessingGameMode class 
+
+
 General template
 ### Next commit : DATE TIME
 - Changes in ???
