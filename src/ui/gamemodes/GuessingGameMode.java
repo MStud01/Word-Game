@@ -36,7 +36,7 @@ public class GuessingGameMode extends GameMode {
     private RSG rsg = RSG.getInstance();
     private DSL dsl = DSL.getInstance();
     private List<DeterminedString> generatedStrings;
-    private List<String> addedStrings, changedStrings;
+    private List<String> addedStrings, changedStrings, guessedStrings;
 
     public GuessingGameMode() {
         this.rsg = RSG.getInstance();
@@ -44,6 +44,7 @@ public class GuessingGameMode extends GameMode {
         this.generatedStrings = new ArrayList<DeterminedString>();
         this.addedStrings = new ArrayList<String>();
         this.changedStrings = new ArrayList<String>();
+        this.guessedStrings = new ArrayList<String>();
     }
 
     @Override
@@ -68,12 +69,26 @@ public class GuessingGameMode extends GameMode {
 
         UserIO.INSTANCE.printToTerminal("\n\nNow, you can guess whether each string is a word or not.\n");
 
+        int score = 0;
         while (n > 0) {
             UserIO.INSTANCE.printToTerminal("Choose a string from the generated strings above and type it in to guess.\n");
             UserIO.INSTANCE.printToTerminal("Or you can type \"skip\" if you think the remainder of the strings cannot possibly be English words.\n");
             String response = UserIO.INSTANCE.scanner.nextLine();
             UserIO.INSTANCE.printToTerminal("\n");
             if (response.equalsIgnoreCase("skip")) {
+                for (int j = 0; j < generatedStrings.size(); j++) {
+                    DeterminedString ds = generatedStrings.get(j);
+                    if (!guessedStrings.contains(ds.getString())) {
+                        if (dsl.getDS(ds.getString()).isWord() == ds.isWord()) {
+                            score++;
+                        }
+                        // TODO: Move the below line to the logging class once that is implmeented
+                        UserIO.INSTANCE.printToTerminal("You have skipped the string " + ds.getString() + ".\n");
+                    }
+                }
+                UserIO.INSTANCE.printToTerminal("\n");
+                // TODO: Add a delay here to allow the user to read which strings were skipped if the 
+                // game speed is a bit too fast
                 break;
             }
             String selectedString = response;
@@ -101,10 +116,12 @@ public class GuessingGameMode extends GameMode {
             try {
                 if (dsl.getDSstatus(selectedString) == ds.isWord()) {
                     UserIO.INSTANCE.printToTerminal("Your guess was correct!!\n\n");
+                    score++;
                 } else {
                     UserIO.INSTANCE.printToTerminal("Unfortunately, uour guess was incorrect...\n");
                     UserIO.INSTANCE.printToTerminal("The string you guessed was actually " + (ds.isWord() ? "not a word" : "a word") + ".\n\n");
                 }
+                guessedStrings.add(selectedString);
             } catch (DeterminedStringNotFoundException dsnfe) {
                 UserIO.INSTANCE.printToTerminal("\nERROR: THIS WAS NOT SUPPOSED TO HAPPEN!!!!\n");
                 continue;
@@ -116,15 +133,15 @@ public class GuessingGameMode extends GameMode {
         // somewhere else in the current round along the main progression line where the user is 
         // guaranteed to be exposed to the secret messge needed below. 
         // Or, the secret word could be in one of the other game modes (possibly streak mode)
+
+        // TODO: Add a delay here to allow the user to read which strings were skipped since the following section can be a bit too fast
         UserIO.INSTANCE.printToTerminal("Alright. We are done with all the guesswork.\n");
         UserIO.INSTANCE.printToTerminal("Here's how well you did this round.\n\n");
         
-        // TODO: Look into printing the letter grade here as an alternative since the user does not need
-        // to know all the information about their performance unless it is the end of the round 
-        // and they can't do anything else to change how well they performed (since that's very cheatsy)
-        printSummary();
+        UserIO.INSTANCE.printToTerminal("You have been awarded a letter grade of " + getLetterGrade(score, generatedStrings.size()) + " for your performance in this round.\n");
+        UserIO.INSTANCE.printToTerminal(String.format("Now that means you got a percentage of %.2f in this round\n\n", (((double) score/(double) generatedStrings.size()) * 100)).replace(" i","% i"));
 
-        UserIO.INSTANCE.printToTerminal("Are you satisfied with the above results?\n");
+        UserIO.INSTANCE.printToTerminal("Are you satisfied with your current grade?\n");
         UserIO.INSTANCE.printToTerminal("If not, type the secret message if you want to enable cheats on.\n");
         String message = UserIO.INSTANCE.scanner.nextLine();
         UserIO.INSTANCE.printToTerminal("\n");
@@ -188,8 +205,11 @@ public class GuessingGameMode extends GameMode {
         for (int i = 0; i < generatedStrings.size(); i++) {
             DeterminedString ds = generatedStrings.get(i);
             UserIO.INSTANCE.printToTerminal((i + 1) + ". " + ds.getString() + "\n");
-            UserIO.INSTANCE.printToTerminal("Your Guess - "+ (ds.isWord() ? "A Word" : "Not A Word") +"\n");
+            if (guessedStrings.contains(ds.getString())) {
+                UserIO.INSTANCE.printToTerminal("Your Guess - "+ (ds.isWord() ? "A Word" : "Not A Word") +"\n");
+            }
             if (addedStrings.contains(ds.getString())) {
+                // TODO: Move the below line to the logging class once that is implmeented
                 UserIO.INSTANCE.printToTerminal("This string was recently added into the in-game library in this round.\n");
             }
             UserIO.INSTANCE.printToTerminal("\n");
@@ -214,28 +234,54 @@ public class GuessingGameMode extends GameMode {
                 changeFlag = false;
             }
             UserIO.INSTANCE.printToTerminal("Please type in the string that you wish to change the status of.\n");
-            String selectedString = UserIO.INSTANCE.scanner.nextLine();
+            UserIO.INSTANCE.printToTerminal("Or if you would like to change the status of all the strings, you can type \"change all\".\n");
+            String response = UserIO.INSTANCE.scanner.nextLine();
             UserIO.INSTANCE.printToTerminal("\n");
-            if (generatedStrings.indexOf(new DeterminedString(selectedString, false)) == -1) {
-                UserIO.INSTANCE.printToTerminal("That was an invalid string. Try typing in one of the generated strings below.\n\n");
-                printSummary();
-                continue;
-            }
-            try {
-                boolean status = dsl.getDSstatus(selectedString);
-                int prevCStrings = changedStrings.size();
-                promptforChangeStatus(selectedString, !status);
-                changeFlag = (changedStrings.size() != prevCStrings);
-            } catch (DeterminedStringNotFoundException dsnfe) {
-                UserIO.INSTANCE.printToTerminal("\nERROR: THIS WAS NOT SUPPOSED TO HAPPEN!!!!\n");
-            } finally {
-                UserIO.INSTANCE.printToTerminal("Is that all??? If you do still wish to make any more changes, type \"continue\".\n");
-                UserIO.INSTANCE.printToTerminal("Or if you are done being a cheat, type \"I am happy to have been cheating and will now proudly declare my\nbrilliant score to be a result of me cheating\".\n");
-                loopChoice = UserIO.INSTANCE.scanner.nextLine();
+            if (response.toLowerCase().startsWith("change all")) {
+                // TODO: Extract the belwo functionality out to a method and mirror the update of changeFlag to when a single string's status is changed
+                UserIO.INSTANCE.printToTerminal("Would you like to change all the strings to be words?\n");
+                String prompt = UserIO.INSTANCE.scanner.nextLine();
                 UserIO.INSTANCE.printToTerminal("\n");
+                if (!(prompt.toLowerCase().startsWith("y")) && !(prompt.toLowerCase().startsWith("n"))) {
+                    UserIO.INSTANCE.printToTerminal("That is an invalid choice. The status of the strings will not be changed.\n\n");
+                } else {
+                    boolean newStatus = prompt.toLowerCase().startsWith("y");
+                    for (DeterminedString ds : generatedStrings) {
+                        String selectedString = ds.getString();
+                        try {
+                            if (dsl.getDSstatus(selectedString) != newStatus){
+                                changedStrings.add(selectedString);
+                            }
+                            dsl.getDS(selectedString).setStatus(newStatus);
+                        } catch (DeterminedStringNotFoundException e) {
+                            UserIO.INSTANCE.printToTerminal("\nTHIS WAS NOT SUPPOSED TO HAPPEN.\n");
+                            break;
+                        }
+                    }
+                    changeFlag = true;
+                    UserIO.INSTANCE.printToTerminal("The Status of all the generated strings were changed successfuly to " + (newStatus ? "" : "not ") + "be words.\n\n");
+                }
+            } else {
+                String selectedString = response;
+                if (generatedStrings.indexOf(new DeterminedString(selectedString, false)) == -1) {
+                    UserIO.INSTANCE.printToTerminal("That was an invalid string. Try typing in one of the generated strings below.\n\n");
+                    changeFlag = true;
+                    continue;
+                }
+                try {
+                    boolean status = dsl.getDSstatus(selectedString);
+                    int prevCStrings = changedStrings.size();
+                    promptforChangeStatus(selectedString, !status);
+                    changeFlag = (changedStrings.size() != prevCStrings);
+                } catch (DeterminedStringNotFoundException dsnfe) {
+                    UserIO.INSTANCE.printToTerminal("\nERROR: THIS WAS NOT SUPPOSED TO HAPPEN!!!!\n");
+                }
             }
+            UserIO.INSTANCE.printToTerminal("Is that all??? If you do still wish to make any more changes, type \"continue\".\n");
+            UserIO.INSTANCE.printToTerminal("Or if you are done being a cheat, type \"I am happy to have been cheating and will now proudly declare my\nbrilliant score to be a result of me cheating\".\n");
+            loopChoice = UserIO.INSTANCE.scanner.nextLine();
+            UserIO.INSTANCE.printToTerminal("\n");
         }
-            // TODO: Add a functionality to allow the user to change all of the strings status at once to either a word or not a word
         while ((loopChoice.toLowerCase().charAt(0) == 'n') || (loopChoice.toLowerCase().charAt(0) == 'c'));
     }
 
@@ -288,29 +334,61 @@ public class GuessingGameMode extends GameMode {
             }
         }
         UserIO.INSTANCE.printToTerminal("Your score for this round of Guessing Mode is " + score + " out of " + n +".\n");
-        String performanceMessage = getPerformanceMessage(score, n);
-        UserIO.INSTANCE.printToTerminal("Your peformance this round was" + performanceMessage + "\n\n");
+        UserIO.INSTANCE.printToTerminal("Your Grade for this round: \t\t" + getLetterGrade(score, n) + "\n");
+        UserIO.INSTANCE.printToTerminal("Your peformance this round was" + getPerformanceMessage(getLetterGrade(score, n)) + "\n\n");
     }
 
-    // A helper method that returns a message stating the user's performance for the round using a 
-    // custom defined grading scale with the given ints. 
-    // Alternatively, a method to return an enum value for letter grades could be implemented for 
-    // this method if the enum proves to be reusable in other places.
-    private String getPerformanceMessage(int score, int n) {
-        String performanceMessage;
+    // TODO: This method can be changed into an enum for letter grade constants that other game modes can utilize. 
+    // I plan to implement a method that just converts the scores into a letter grade for now since I am 
+    // doubtful that I would need this method elsewhere. However, an enum would make it easier to implement 
+    // the getters methods and since it is only used in this class, I can implement it is an inner enum
+    // This method returns a letter grade using the given ints score and n, where
+    //                                  score is the number of correct guesses made by the user, and
+    //                                  n is the highest score possible in this round of the game mode. 
+    private char getLetterGrade(int score, int n) {
+        char letterGrade;
         double delta = 0.000001, scoreOutOfTotal = (double) score/(double) n;
         if (((scoreOutOfTotal - 0.90) >= delta) || (Math.abs(scoreOutOfTotal - 0.90) <= delta)) {
-            performanceMessage = " SUPEEEEEEEEEERRRRRRRRRB!!!!! Really Great Job For Reaching The Peak.";
+            letterGrade = 'S';
         } else if ((((scoreOutOfTotal - 0.70) >= delta) || (Math.abs(scoreOutOfTotal - 0.70) <= delta)) && (scoreOutOfTotal < 0.90)) {
-            performanceMessage = " excellent. I am sure that with practice, You Will Reach The Top\nSoon!";
+            letterGrade = 'A';
         } else if ((((scoreOutOfTotal - 0.50) >= delta) || (Math.abs(scoreOutOfTotal - 0.50) <= delta)) && (scoreOutOfTotal < 0.70)) {
-            performanceMessage = " statistically above average. You displayed a Pretty Well-Versed\nVocabulary..";
+            letterGrade = 'B';
         } else if ((((scoreOutOfTotal - 0.30) >= delta) || (Math.abs(scoreOutOfTotal - 0.30) <= delta)) && (scoreOutOfTotal < 0.50)) {
-            performanceMessage = " pretty.......   bad. You can do even better next time, I Am Sure.";
+            letterGrade = 'C';
         } else if ((((scoreOutOfTotal - 0.05) >= delta) || (Math.abs(scoreOutOfTotal - 0.05) <= delta)) && (scoreOutOfTotal < 0.30)) {
-            performanceMessage = "...... EH! I am sure that was a fluke. No way you are actually....\nTHIS BAD!!";
+            letterGrade = 'D';
         } else {
-            performanceMessage = "..............ehem~... WOW!!!! I am IMPRESSED to say the least. You\ndefied all odds to achieve such an...... *softly* unbelievably low ...  score that I am concerned\nif this is how you decide the actions in your Life.";
+            letterGrade = 'F';
+        }
+        return letterGrade;
+    }
+
+    // A helper method that returns a message stating the user's performance for the round using the given
+    // char letterGrade, which in a future version will be an enum constant instead.
+    // The valid inputs are 'S', 'A', 'B', 'C', 'D', and 'F'. 
+    // Currently, this method does accept the invalid inputs due to how switch blocks work. However, that
+    // will change with the introduction of the inner enum for storing the letterGrade constants.  
+    private String getPerformanceMessage(char letterGrade) {
+        String performanceMessage;
+        switch (letterGrade) {
+            case 'S':
+                performanceMessage = " SUPEEEEEEEEEERRRRRRRRRB!!!!! Really Great Job For Reaching The Peak.";;
+                break;
+            case 'A':
+                performanceMessage = " excellent. I am sure that with practice, You Will Reach The Top\nSoon!";;
+                break;
+            case 'B':
+                performanceMessage = " statistically above average. You displayed a Pretty Well-Versed\nVocabulary..";
+                break;
+            case 'C':
+                performanceMessage = " pretty.......   bad. You can do even better next time, I Am Sure.";
+                break;
+            case 'D':
+                performanceMessage = "...... EH! I am sure that was a fluke. No way you are actually....\nTHIS BAD!!";
+                break;
+            default:
+                performanceMessage = "..............ehem~... WOW!!!! I am IMPRESSED to say the least. You\ndefied all odds to achieve such an...... *softly* unbelievably low ...  score that I am concerned\nif this is how you decide the actions in your Life.";
         }
         return performanceMessage;
     }

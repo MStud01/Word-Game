@@ -143,7 +143,11 @@ I made some other changes that better fit this addition of hiding the accessibil
 - Added TODOs to update specifications of the class the and bootGameMode() method in GuessingGameMode class
     - The specifications are a bit outdated since some of the logics and method to change the status of a generated string has been hidden behind a secret cheats method.
 
-### 6TH July 2026 02:51 PM GMT +3
+### 6th July 2026 02:51 AM GMT +3
+ In this commit, I mostly did minor updates in anticipation for some future commits I plan to make. In the meanwhile, I did some cleaning up of the GuessingGameMode class and I removed some redundant code that either had no purpose existing as it would not have executed at runtime or the code was duplicated and used elsewhere but the lines where code that ended up being copied did not get updated accordingly.
+ I also added a line to print a message to the user to ensure they type a particular message once they are done utilizing the cheats feature to exit the cheats method. 
+Finally, I added some comments to update the working of the class and the methods in GuessingGameMode class and kept some reminders for myself to implement the changes planned for future commits.
+
 - Removed if block for checking updates in changedStrings in printSummaryRoundInProgress() method in GuessingGameMode class
     - The local variable changedStrings can no longer be updated when this method can be called during the section of the game mode wher the user can guess the word status due to the bfuscation/obscuring of the promptForChangeStatus() method.
 - Updated specifications for the GuessingGameMode class and the bootGameMode() method inGuessingGameMode class 
@@ -161,10 +165,35 @@ I made some other changes that better fit this addition of hiding the accessibil
 - Removed the TODOs that notified me to update the specifications of the class and bootGameMode() method in GuessingGameMode class 
 
 
-### Next commit : DATE TIME
-- Changed functionality of secretCheats() method
+### 6th July 2026 06:30 PM GMT +3
+In this commit, I made a QOL change by adding the ability to change the status of all the strings at once in the secretCheats() method in the GuessingGameMode class and made some changes to the UI where the user is now informed more about their decisions made during the rounds of guessing and less right after they are done guessing. 
+In decreasing the amount of information that the user receives right after they have finished guessing to a simple letter grade and a score, it is now easier to understand a user's performance as well as simpler to motivate them to utlize the cheats feature. By doing so, I also ensured that the summary is only printed at the end of the round or during the secretCheats() method.
+Finally, I made further reminders to improve my currently improvised letterGrade and performanceMessage getters as well as further reducing the bloat of information the user receives at certain points in a single round of the game mdoe. 
+
+- Added QOL functionality of secretCheats() method to allow user to change the status of all the generated strings at once in GuessingGameMode class
+    - Now the user is also informed to type a particular phrase to enable the user to change the word status of all the generated strings. This allowes them to change them all to words or not words at once.
+    - The changedStrings field is also properly updated when the user decides to change the status of all the strings so the relevant information is only updated when the status of the string in the DSL has been actually changed.
+    - Removed the TODO that reminded me to add this change.
+- Added a method called getLetterGrade() in GuessingGameMode class
+    - This method is now utilized instead of printSummary() method right after the user is done guessing, reducing the amount of information while still conveying to the user a short description of their performance prior to the cheats feature being introduced (lines).
+    - It is also now called whenever getPerformanceMessage() method is called to ensure invalid inputs are not passed to getPerformanceMessage() method.
+    - And this was also added to printSummary() method to inform the user of their grade regardless of whether it got changed through the cheats feature.
+- Updated the specifications and functionality of the getPerformanceMessage() method in GuessingGameMode class
+    - The grading scale used by the earlier iteration of getPerformanceMessage() is now used by getLetterGrade() method instead to return a letterGrade, that is used by getPerformanceMessage to return the appropriate output message.
 - Added a field called guessedStrings and a local variable called score in bootGameMode() method in GuessingGameMode class
-- Create an inner enum for letterGrades in GuessingGameMode class 
+    - To call the letter grade getter at the moment the user is done guessing, I required to know the score the user obtained within the bootGameMode() method.
+    - There is additional code that updates these identifiers in bootGameMode() method as the round goes on, including whenthe user decides to skip strings in bootGameMode() method in GuessingGameMode class
+- Updated functionality of the printSummaryRoundInProgress() method to print the user's guess of the generated strings in GuessingGameMode class
+    - Prior to this change, the user was informed of the "guessed" status of all the generated strings including ones the user had not actually given a guess at. So now, that information is hidden unless the user has made a guess on the generated string's word status.
+- Updated a line in secretCheats() method to reduce multiple calls to printSumary() method in GuessingGameMode class (line 268)
+    - Now, the changeFlag local variable is modified to maintian the same functionality and ensure there is only one line that calls printSummary() method
+- Added a TODO to extract a helper method for the secretCheats() method in GuessingGameMode class
+    - This would replace the current code that allows the user to change the status of all strings at once and would mirror the other branch where the user is successfully able to change the status of a single string in the same method.
+- Added a TODO to create an inner enum for letterGrades in GuessingGameMode class instead of the currrently improvised methods used in GuessingGameMode class. 
+- Added a TODO to update some lines to utlize the logging class that will be implemented in a future commit in GuessingGameMode class (lines 85 and 212)
+- Added a TODO to add some more delay to allow the user to process the information when it is displayed a certain points in bootGameMode() method in GuessingGameMode class (lines 90 and 137)
+- Added a brief summary of the changes I made in my previous commit when it was supposed to be present.
+    - Forgot to add it in the previous commit, so I made sure to add them in this one.
 
 
 General template
