@@ -195,6 +195,32 @@ Finally, I made further reminders to improve my currently improvised letterGrade
 - Added a brief summary of the changes I made in my previous commit when it was supposed to be present.
     - Forgot to add it in the previous commit, so I made sure to add them in this one.
 
+### 8th July 2026 07:18 PM GMT +3
+In this commit, I made some abstractions to the GuessingGameMode class by implementing an inner enum based on the custom grading scale that I used in the getLetterGrade method as well as extracting the promptForChanegAllStatus() method from the secretCheats() method. 
+The grading scale utilized chars to maintain a simple return and condition checks when using the letter grades to print the performance message through the getPerformanceMessage() method. This was prone to errors as the char consisted of a lot more characters than just the characters used for the grading scale and since these were not handled properly, it lead to incorrect results being shown. It also proved to be tedious to ensure that the getLetterGrade() method was called with every getPerformanceMessgae() call. So to make the condition checks (especially in getPerformanceMessage() method) more rigid, I implemented an inner enum using the same grading scale while also simplifying the getLetterGrade() method. 
+The responsibilities of changing the status of all generated strings were previously handled by the secretCheats() method which dviolated the snigle responsibility, single method rule. So I decided to extract a method to change the status of all the generated strings since there already existed a method called promprForChangeStatus() that functioned similarly instead changed the status of a single generatring string, while also mirroring how these methods were called in secretCheats() method.
+
+- Added an inner enum called LetterGrade to GuessingGameMode class
+    - The constants defined by the custom grading scale are now properly implemented as an enum with fields describing the bounds for each of the letter grades. 
+    - The getLetterGrade method was moved into the enum so that it could access the enum constants, allowing me to code it into a more concisely written method. The method was declared static so the enclosing class (GuessingGameMode class) can call the method without the compiler complaining. Additionally, the specifications and signature for the method were slightly updated to return the inner enum that was added as opposed to the previous char return, that was error-prone. The calls to the method are now updated due to its static-ity in the GuessingGaeMode class (lines 141, 354 and 355).
+    - The inner enum has been given a complete specification detailing the reason the enum was implemented as well as what this implementation now allows for future classes that need this enum.
+    - Removed the TODO reminding me to make the above changes 
+- Updated the specifications, signature and implementation of getPerformanceMessage() method in GuessingGameMode class
+    - Now, it incoorporates the newly added inner enum allowing for the switch block to be executed more smoothly and in a rigorous manner. This removes the previous issue of being able to pass invalid inputs into the method as it now strictly restricted the inner enum type.
+- Extracted out a new method from secretCheats() method called promptForChangeAllStatus() in GuessingGameMode class
+    - The method now has specifications fully written regarding its behaviour which closely matches the promptForChageStatus() method's behaviour.
+    - Updated some lines in the method removing the update to changeFlag (which is now handled in secretCheats() method), moved the line that changed the status of the string inside the if block so a redundant execution does not occur when the if condition is not met and added a new line to print a message notifying the user that the status of the strings can be changed at a later time. 
+    - The code where this method is called (in the secretCheats() method) now mirrors the branch in the secretCheats() method where the user is successfully able to change the status of a single string
+    - Removed the TODO reminding to make the above change
+- Added a TODO to override the toString() method for the inner enum LetterGrade in GuessingGameMode class
+    - To easily identify whether the grade received is good, moderate or bad using text color as the indicator.
+- Fixed a typo for the TODO in GuessingGameMode class (lines 85 and 212)
+
+### Next commit : DATE TIME
+
+
+- Changes in WordGameApp class
+- Changes in UserIO class
 
 General template
 ### Next commit : DATE TIME
