@@ -218,6 +218,8 @@ The responsibilities of changing the status of all generated strings were previo
 
 ### Next commit : DATE TIME
 
+- Added some constants to allow the teriminal output text to be colored in UserIO class
+    - These constants use ANSI escape codes to change the text color as well as the background when needed
 
 - Changes in WordGameApp class
 - Changes in UserIO class

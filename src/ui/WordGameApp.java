@@ -7,6 +7,8 @@ import ui.gamemodes.GameModes;
 // TODO: Add a logging system to log user inputs and game outcomes
 // TODO: Add a saving system to save the user's progress and the list of Determined Strings (DSL) to a file
 
+// TODO: Look into whether the GameModes enum needs to be a top-level enum or if it can be an inner enum of WordGameApp.
+
 // An application that utilizes the Scanner class to create a command-line
 // interface for the Word Guessing Game, allowing the user to  
 //                      1) determine whether a set of randomly generated strings is an actual word or not, and
@@ -83,12 +85,10 @@ public class WordGameApp {
             } else {
                 for (GameModes gm : gameModes) {
                     // TODO: Consider changing the game mode names to ones excluding the -ing suffixes
-                    // Or comment the commented if condition below
+                    // Or uncomment the commented if condition below
+                    // if ((input.equalsIgnoreCase(gm.getTitle().substring(0, gm.getTitle().indexOf(" ")))) || (input.equalsIgnoreCase(gm.getTitle()))) { 
                     String expectedInputString = gm.getTitle().indexOf("ing") == -1 ? gm.getTitle().substring(0, gm.getTitle().indexOf(" ")) : gm.getTitle().substring(0, gm.getTitle().indexOf("ing"));
-                    if ((input.equalsIgnoreCase(expectedInputString)) || (input.equalsIgnoreCase(gm.getTitle()))) {
-                    // if ((input.equalsIgnoreCase(gm.getTitle().substring(0, gm.getTitle().indexOf(" ")))) || (input.equalsIgnoreCase(gm.getTitle()))) {
-                        // TODO: Initialize the appropriate constructor here by getting the appropriate field from GameModes
-                        // and call the GameModeBoot() method                    
+                    if ((input.equalsIgnoreCase(expectedInputString)) || (input.equalsIgnoreCase(gm.getTitle()))) {              
                         UserIO.INSTANCE.printToTerminal("You have chosen the " + gm.getTitle() + ".\n");
                         currGameMode = gm.getConstructor().get();
                         currGameMode.bootGameMode();

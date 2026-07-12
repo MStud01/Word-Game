@@ -61,18 +61,18 @@ public class GuessingGameMode extends GameMode {
         
         generateAndAddStrings();
 
-        UserIO.INSTANCE.printToTerminal("Here is your set of generated strings:\n");
+        UserIO.INSTANCE.printToTerminal(UserIO.BLUE_TEXT + "Here is your set of generated strings:\n" + UserIO.RESET);
         int n = generatedStrings.size();
         for (int i = 0; i < n; i++) {
-            UserIO.INSTANCE.printToTerminal(String.format("%-3s %-20s",Integer.toString(i + 1) + ".", generatedStrings.get(i).getString()) + ((i % 4 == 3) ? "\n" : " "));
+            UserIO.INSTANCE.printToTerminal(UserIO.MAGENTA_TEXT + String.format("%-3s %-20s",Integer.toString(i + 1) + ".", generatedStrings.get(i).getString()) + ((i % 4 == 3) ? "\n" : " " + UserIO.RESET));
         }
 
-        UserIO.INSTANCE.printToTerminal("\n\nNow, you can guess whether each string is a word or not.\n");
+        UserIO.INSTANCE.printToTerminal(UserIO.CYAN_TEXT + "\n\nNow, you can guess whether each string is a word or not.\n" + UserIO.RESET);
 
         int score = 0;
         while (n > 0) {
-            UserIO.INSTANCE.printToTerminal("Choose a string from the generated strings above and type it in to guess.\n");
-            UserIO.INSTANCE.printToTerminal("Or you can type \"skip\" if you think the remainder of the strings cannot possibly be English words.\n");
+            UserIO.INSTANCE.printToTerminal(UserIO.BRIGHT_RED_TEXT + "Choose a string from the generated strings above and type it in to guess.\n"+UserIO.RESET);
+            UserIO.INSTANCE.printToTerminal(UserIO.BRIGHT_YELLOW_TEXT +"Or you can type \"skip\" if you think the remainder of the strings cannot possibly be English words.\n"+UserIO.RESET);
             String response = UserIO.INSTANCE.scanner.nextLine();
             UserIO.INSTANCE.printToTerminal("\n");
             if (response.equalsIgnoreCase("skip")) {
@@ -83,7 +83,7 @@ public class GuessingGameMode extends GameMode {
                             score++;
                         }
                         // TODO: Move the below line to the logging class once that is implemented
-                        UserIO.INSTANCE.printToTerminal("You have skipped the string " + ds.getString() + ".\n");
+                        UserIO.INSTANCE.printToTerminal(UserIO.BRIGHT_GREEN_TEXT + "You have skipped the string " + ds.getString() + ".\n"+UserIO.RESET);
                     }
                 }
                 UserIO.INSTANCE.printToTerminal("\n");
@@ -94,16 +94,16 @@ public class GuessingGameMode extends GameMode {
             String selectedString = response;
             int DSindex = generatedStrings.indexOf(new DeterminedString(selectedString, false)); 
             if (DSindex == -1) {
-                UserIO.INSTANCE.printToTerminal("That was not one of the randomly generated strings. Try typing it again.\n");
+                UserIO.INSTANCE.printToTerminal(UserIO.BRIGHT_BLUE_TEXT +"That was not one of the randomly generated strings. Try typing it again.\n"+UserIO.RESET);
                 continue;
             }
-            UserIO.INSTANCE.printToTerminal("Do you think this string is a word? Type \"Yes\" if you do think so. Else type \"No\".\n");
+            UserIO.INSTANCE.printToTerminal(UserIO.BRIGHT_MAGENTA_TEXT + "Do you think this string is a word? Type \"Yes\" if you do think so. Else type \"No\".\n"+UserIO.RESET);
             String guess = UserIO.INSTANCE.scanner.nextLine();
             UserIO.INSTANCE.printToTerminal("\n");
 
             DeterminedString ds = generatedStrings.get(DSindex);
             if ((guess.toLowerCase().charAt(0) == 'y') || (guess.toLowerCase().charAt(0) == 'w')) {
-                UserIO.INSTANCE.printToTerminal("You have guessed that the string is a word.\n");
+                UserIO.INSTANCE.printToTerminal(UserIO.BRIGHT_CYAN_TEXT +"You have guessed that the string is a word.\n" +UserIO.RESET);
                 ds.setStatus(true);
             } else if (guess.toLowerCase().charAt(0) == 'n') {
                 UserIO.INSTANCE.printToTerminal("You have guessed that the string is not a word.\n");
@@ -115,15 +115,15 @@ public class GuessingGameMode extends GameMode {
 
             try {
                 if (dsl.getDSstatus(selectedString) == ds.isWord()) {
-                    UserIO.INSTANCE.printToTerminal("Your guess was correct!!\n\n");
+                    UserIO.INSTANCE.printToTerminal(UserIO.GREEN_TEXT + "Your guess was correct!!\n\n" + UserIO.RESET);
                     score++;
                 } else {
-                    UserIO.INSTANCE.printToTerminal("Unfortunately, uour guess was incorrect...\n");
+                    UserIO.INSTANCE.printToTerminal(UserIO.RED_TEXT + "Unfortunately, uour guess was incorrect...\n" + UserIO.RESET);
                     UserIO.INSTANCE.printToTerminal("The string you guessed was actually " + (ds.isWord() ? "not a word" : "a word") + ".\n\n");
                 }
                 guessedStrings.add(selectedString);
             } catch (DeterminedStringNotFoundException dsnfe) {
-                UserIO.INSTANCE.printToTerminal("\nERROR: THIS WAS NOT SUPPOSED TO HAPPEN!!!!\n");
+                UserIO.INSTANCE.printToTerminal(UserIO.RED_TEXT + "\nERROR: THIS WAS NOT SUPPOSED TO HAPPEN!!!!\n" + UserIO.RESET);
                 continue;
             }
             printSummaryRoundInProgress();
@@ -150,7 +150,7 @@ public class GuessingGameMode extends GameMode {
         if (message.contentEquals("message")) {
             secretCheats();
         } else {
-            UserIO.INSTANCE.printToTerminal("TOOOOOOO BAD!! You missed your chance.\nHINT: Try looking for it in one of the other game modes.\n\n");
+            UserIO.INSTANCE.printToTerminal(UserIO.RED_TEXT + "TOOOOOOO BAD!! You missed your chance.\nHINT: Try looking for it in one of the other game modes.\n\n" + UserIO.RESET);
         }
 
         UserIO.INSTANCE.printToTerminal("That is the end of this round for the Guessing Game Mode.\n\n");
@@ -170,15 +170,38 @@ public class GuessingGameMode extends GameMode {
     private void generateAndAddStrings() {
         Random rng = new Random();
         UserIO.INSTANCE.printToTerminal("How large do you should the set of strings be?\n");
-        int setSize = Integer.parseInt(UserIO.INSTANCE.scanner.nextLine());
-        UserIO.INSTANCE.printToTerminal("\n");
+        // TODO: Commit these changes for now and then make changes to the loop condiion to check using a regex
+        int setSize = 0;
+        while (true) {
+            try {
+                String setSizeString = UserIO.INSTANCE.scanner.nextLine();
+                UserIO.INSTANCE.printToTerminal("\n");
+                setSize = Integer.parseInt(setSizeString);
+                break;
+            } catch (NumberFormatException nfe) {
+                // TODO: Stop the user for the amount of time it takes to print the following messages
+                // What I want to achieve is to stop the user from being able to type inputs while text is 
+                // being printed to the terminal
+                // UNLESS I ALLOW THE USER TO TURN ON FULL SPEED MODE through the ULTRA gameSpeed setting
+                // which allows them to type inputs as the game text is being printed
+                // TODO: Might need to implment a method in UserIO using Scanner's nextLine() to do the above for any place that calls nextLine()
+                UserIO.INSTANCE.printToTerminal("That was an invalid input. Try typing a number. \n");
+                UserIO.INSTANCE.printToTerminal("How large do you should the set of strings be?\n");
+            }
+        }
 
         for (int i = 0; i < setSize; i++) {
-            // The Idea is not to type in a number greater than 20 since it breaks formatting when printing
-            // Type in a string that is not longer than 20 English letters.
             UserIO.INSTANCE.printToTerminal("Pick a number between 1 and 20.\n");
-            int len = Integer.parseInt(UserIO.INSTANCE.scanner.nextLine());
+            String lenString = UserIO.INSTANCE.scanner.nextLine();
             UserIO.INSTANCE.printToTerminal("\n");
+            int len = 0;
+            while (!lenString.matches("1?[1-9]|(1|2)0")) {
+                UserIO.INSTANCE.printToTerminal("That was an invalid input. Try typing any number between 1 and 20. \n");
+                UserIO.INSTANCE.printToTerminal("Pick a number between 1 and 20.\n");
+                lenString = UserIO.INSTANCE.scanner.nextLine();
+                UserIO.INSTANCE.printToTerminal("\n");
+            }
+            len = Integer.parseInt(lenString);
             String generatedString = rsg.generateString(len);
             DeterminedString ds = new DeterminedString(generatedString, false);
             while (generatedStrings.contains(ds)) {
@@ -206,7 +229,7 @@ public class GuessingGameMode extends GameMode {
             DeterminedString ds = generatedStrings.get(i);
             UserIO.INSTANCE.printToTerminal((i + 1) + ". " + ds.getString() + "\n");
             if (guessedStrings.contains(ds.getString())) {
-                UserIO.INSTANCE.printToTerminal("Your Guess - "+ (ds.isWord() ? "A Word" : "Not A Word") +"\n");
+                UserIO.INSTANCE.printToTerminal("Your Guess - "+ (ds.isWord() ? UserIO.GREEN_TEXT + "A Word" : UserIO.RED_TEXT + "Not A Word") + UserIO.RESET +"\n");
             }
             if (addedStrings.contains(ds.getString())) {
                 // TODO: Move the below line to the logging class once that is implemented
@@ -223,7 +246,7 @@ public class GuessingGameMode extends GameMode {
     // or in one of the other game modes.
     // The following method was only present as way to debug promptForChanegStatus() and printSummary() methods
     private void secretCheats() {
-        UserIO.INSTANCE.printToTerminal("OK. YOU FOUND IT!\nYou got lucky... maybe.\n\n");
+        UserIO.INSTANCE.printToTerminal(UserIO.GREEN_TEXT + "OK. YOU FOUND IT!\nYou got lucky... maybe.\n\n" + UserIO.RESET);
 
         boolean changeFlag = true;
         String loopChoice = "noorp";
@@ -254,7 +277,7 @@ public class GuessingGameMode extends GameMode {
                     promptforChangeStatus(selectedString, !status);
                     changeFlag = (changedStrings.size() != prevCStrings);
                 } catch (DeterminedStringNotFoundException dsnfe) {
-                    UserIO.INSTANCE.printToTerminal("\nERROR: THIS WAS NOT SUPPOSED TO HAPPEN!!!!\n");
+                    UserIO.INSTANCE.printToTerminal(UserIO.RED_TEXT + "\nERROR: THIS WAS NOT SUPPOSED TO HAPPEN!!!!\n" + UserIO.RESET);
                 }
             }
             UserIO.INSTANCE.printToTerminal("Is that all??? If you do still wish to make any more changes, type \"continue\".\n");
@@ -339,10 +362,9 @@ public class GuessingGameMode extends GameMode {
         for (int i = 0; i < n; i++) {
             DeterminedString ds = generatedStrings.get(i);
             try {
-                // TODO: Find a way to change the font colors so it is easier to differentiate what part is the user's guess
-                // and what part is the actual word status of the string
-                UserIO.INSTANCE.printToTerminal(String.format("%-3s String %-32s   is\t\t%s\n", Integer.toString(i + 1)+".", ds.getString(), (dsl.getDSstatus(ds.getString()) ? "a Word" : "Not a Word")));
-                UserIO.INSTANCE.printToTerminal(String.format("    You guessed that %-22s   is\t\t%s\n", ds.getString(),(ds.isWord() ? "a Word" : "Not a Word")));
+                String guessColor = dsl.getDSstatus(ds.getString()) == ds.isWord() ? UserIO.GREEN_TEXT : UserIO.RED_TEXT;
+                UserIO.INSTANCE.printToTerminal(String.format("%-3s String %-32s   is\t\t%s\n", Integer.toString(i + 1)+".", ds.getString(), guessColor + (dsl.getDSstatus(ds.getString()) ? "a Word" : "Not a Word") + UserIO.RESET));
+                UserIO.INSTANCE.printToTerminal(String.format("    You guessed that %-22s   is\t\t%s\n", ds.getString(), guessColor + (ds.isWord() ? "a Word" : "Not a Word") + UserIO.RESET));
                 UserIO.INSTANCE.printToTerminal("    Recently added in this round?\t\t       "+ (addedStrings.contains(ds.getString()) ? "YES": "NO") +"\n");
                 UserIO.INSTANCE.printToTerminal("    Changed status in this round:\t      " + (changedStrings.contains(ds.getString()) ? "Changed from " + (dsl.getDSstatus(ds.getString()) ? "not a word to a word" : "a word to not a word") :"Unchanged word status") +"\n\n");
                 score += (dsl.getDSstatus(ds.getString()) == ds.isWord() ? 1 : 0);
@@ -391,7 +413,26 @@ public class GuessingGameMode extends GameMode {
             // in case none of the conditions above return true
             return F;
         }
-        // TODO: Override the toString() method to print the letter grades with color to the terminal
+        
+        @Override
+        public String toString() {
+            String color = "";
+            switch(this) {
+                case S:
+                case A:
+                    color = UserIO.GREEN_TEXT;
+                    break;
+                case B: 
+                case C:
+                    color = UserIO.YELLOW_TEXT;
+                    break;
+                case D:
+                case F:
+                    color = UserIO.RED_TEXT;
+                    break;
+            }
+            return color + super.toString() + UserIO.RESET;
+        }
     }
 
     // A helper method that returns a message stating the user's performance for the round using the given
